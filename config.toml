@@ -1,3 +1,3 @@
-baseURL = 'http://hugo.hal9000.uber.space'
+baseURL = 'http://step21.github.io'
 languageCode = 'en-us'
 title = 'Hugo test site'
