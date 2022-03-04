@@ -1,0 +1,13 @@
+[en]
+title = "CV & Blog"
+weight = 1
+LanguageName = "EN"
+contentDir = "content/english"
+
+[de]
+title = ""
+description = "CV & Blog"
+contentDir = "content/german" 
+weight = 2
+LanguageDirection = "ltr" 
+LanguageName = "DE"

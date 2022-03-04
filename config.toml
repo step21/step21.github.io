@@ -1,0 +1,3 @@
+baseURL = 'http://hugo.hal9000.uber.space'
+languageCode = 'en-us'
+title = 'Hugo test site'
