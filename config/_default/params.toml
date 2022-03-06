@@ -1,7 +1,7 @@
 
-title = "I'm Jane Doe"
+title = "Law and Technology Researcher"
 author = "Florian Idelberger"
-#copyright = "2020-2021"
+copyright = "2021-2022"
 description = "Call me Jane"
 profilePicture = "images/profile.jpg"
 keywords = ""
@@ -59,4 +59,4 @@ url = "https://www.instagram.com/eotb21"
 [[socialIcons]]
 icon = "fas fa-envelope"
 title = "e-mail"
-url = "mailto:mail@example.com"
+url = "mailto:name@surname.de"
