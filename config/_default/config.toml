@@ -1,7 +1,7 @@
-baseURL = "https://hugo.hal9000.uber.space"
+baseURL = "https://step21.github.io"
 languageCode = "en"
 DefaultContentLanguage = "en"
-title = "Florian Idelberger"
+title = "Florian Idelberger - Law and Technology Researcher"
 
 # theme as hugo module
 #theme = "github.com/lxndrblz/anatole"
