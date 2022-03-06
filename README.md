@@ -1,0 +1,1 @@
+# Hugo with anatole theme
