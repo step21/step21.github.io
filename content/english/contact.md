@@ -1,7 +1,7 @@
 ---
-author: Hugo Authors
+author: Florian Idelberger
 title: Contact
-date: 2019-03-08
+date: 2022-07-30
 description: Contact Page
 contact: true
 ---
