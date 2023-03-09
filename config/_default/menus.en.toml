@@ -23,6 +23,18 @@
   url = "/about/"
 
   [[main]]
+  name = "Tinkering"
+  weight = 400
+  identifier = "about"
+  url = "/tinkering/"
+
+  [[main]]
+  name = "Research"
+  weight = 400
+  identifier = "research"
+  url = "/research/"
+
+  [[main]]
   name = "Contact"
   weight = 500
   identifier = "contact"
