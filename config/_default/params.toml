@@ -4,7 +4,7 @@ copyright = "2022-{{ YEAR }}"
 description = "Law & Tech & Tinkering"
 profilePicture = "images/profile.jpg"
 keywords = ""
-favicon = "favicons/"
+favicon = "favicons/favicon.ico"
 # example ["css/custom.css"]
 customCss = []
 # example ["js/custom.js"]
